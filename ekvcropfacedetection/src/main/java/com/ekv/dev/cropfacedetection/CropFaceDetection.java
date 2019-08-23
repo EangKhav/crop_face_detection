@@ -89,10 +89,18 @@ public class CropFaceDetection {
             Face thisFace = faces.valueAt(i);
 
             //get face boundary
-            float x1 = thisFace.getPosition().x;
-            float y1 = thisFace.getPosition().y;
-            float x2 = x1 + thisFace.getWidth();
-            float y2 = y1 + thisFace.getHeight();
+
+            float x1 = thisFace.getPosition().x - thisFace.getWidth()/14;
+            float y1 = thisFace.getPosition().y - thisFace.getHeight()/6;
+            float x2 = x1 + thisFace.getWidth() + thisFace.getWidth()/12;
+            float y2 = y1 + thisFace.getHeight() + thisFace.getHeight()/4;
+
+            if (x1<0 || x2<0 || y1<0 || y2<0){
+                x1 = 0;
+                y1 = 0;
+                x2 = bitmap.getWidth();
+                y2 = bitmap.getHeight();
+            }
 
             //for first loop init boundary with same as first face boundary
             if (i == 0) {
@@ -118,13 +126,13 @@ public class CropFaceDetection {
 
         //startX and startY is offset to change cropArea such that result cropArea will contain face(s)
         float startX = MathUtils.clamp(
-                boundary.centerX() - bitmapSize / 2.0f,
+                boundary.centerX() - bitmapSize *2f,
                 0,
                 bitmap.getWidth() - bitmapSize
         );
 
         float startY = MathUtils.clamp(
-                boundary.centerY() - bitmapSize / 2.0f,
+                boundary.centerY() - bitmapSize * 2f,
                 0,
                 bitmap.getHeight() - bitmapSize
         );
@@ -134,7 +142,7 @@ public class CropFaceDetection {
     }
 
     /**
-     * You must call this function before any methods of CropFaceDetection object.
+     * You must call this function before any methods of FaceDetectionCrop object.
      *
      * @param context The context
      * @param bitmap  Pass the bitmap that is to be processed for detection
@@ -165,7 +173,7 @@ public class CropFaceDetection {
      */
     public boolean hasFace() {
         if (faces == null) {
-            throw new RuntimeException("Initialize CropFaceDetection using CropFaceDetection.initialize() before using it.");
+            throw new RuntimeException("Initialize FaceDetectionCrop using FaceDetectionCrop.initialize() before using it.");
         }
         return faces.size() != 0;
     }
@@ -177,7 +185,7 @@ public class CropFaceDetection {
      */
     public int getFaceCount() {
         if (faces == null) {
-            throw new RuntimeException("Initialize CropFaceDetection using CropFaceDetection.initialize() before using it.");
+            throw new RuntimeException("Initialize FaceDetectionCrop using FaceDetectionCrop.initialize() before using it.");
         }
         return faces.size();
     }
@@ -190,7 +198,7 @@ public class CropFaceDetection {
     public Bitmap getDetectionGuideLines() {
         //all of the following should not be null to detect guidelines
         if (bitmap == null || boundary == null || cropArea == null || faces == null) {
-            throw new RuntimeException("Initialize CropFaceDetection using CropFaceDetection.initialize() before using it.");
+            throw new RuntimeException("Initialize FaceDetectionCrop using FaceDetectionCrop.initialize() before using it.");
         }
 
         //create copy of bitmap so changes will not reflect original bitmap
@@ -213,6 +221,7 @@ public class CropFaceDetection {
 
         //for each face do following
         for (int i = 0; i < faces.size(); i++) {
+
             Face thisFace = faces.valueAt(i);
 
             float x1 = thisFace.getPosition().x;
@@ -220,7 +229,7 @@ public class CropFaceDetection {
             float x2 = x1 + thisFace.getWidth();
             float y2 = y1 + thisFace.getHeight();
 
-            //draw blue color rectangle in each face
+            //draw blue color rectangle in each face's to cropped
             c.drawRect(x1, y1, x2, y2, p);
         }
 
@@ -246,15 +255,21 @@ public class CropFaceDetection {
     public Bitmap getFaceCroppedBitmap() {
         //we can't get cropped bitmap is bitmap is null or cropArea is null
         if (bitmap == null || boundary == null) {
-            throw new RuntimeException("Initialize CropFaceDetection using CropFaceDetection.initialize() before using it.");
+            throw new RuntimeException("Initialize FaceDetectionCrop using FaceDetectionCrop.initialize() before using it.");
         }
+        //crop bitmap with calculated cropArea
+        int left = (int)boundary.left;
+        int top = (int)boundary.top;
+        int width = (int) (boundary.width());
+        int height = (int) (boundary.height());
+
         //crop bitmap with calculated cropArea
         return Bitmap.createBitmap(
                 bitmap,
-                (int) boundary.left,
-                (int) boundary.top,
-                (int) (boundary.width()),
-                (int) (boundary.height())
+                left,
+                top,
+                width,
+                height
         );
     }
 
